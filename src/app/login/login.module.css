@@ -1,0 +1,169 @@
+.authWrapper {
+  position: relative;
+  min-height: calc(100vh - 4.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  overflow: hidden;
+}
+
+/* Background Glowing Blobs */
+.blob1, .blob2 {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.authInput {
+  padding-left: 2.75rem !important;
+}
+
+.submitBtn {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.dividerContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1.5rem 0;
+  gap: 1rem;
+}
+
+.line {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border-color);
+}
+
+.dividerText {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.googleBtn {
+  width: 100%;
+}
+
+.googleIcon {
+  color: #ea4335 !important;
+}
+
+.demoCredentialsBox {
+  margin-top: 1.75rem;
+  padding: 1rem;
+  background-color: var(--bg-tertiary);
+  border-radius: 0.5rem;
+  border: 1px dashed var(--border-color);
+  font-size: 0.8rem;
+}
+
+.demoHeaderRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.demoCredentialsBox h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+.demoHint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.demoAccountPicker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.demoAccountBtn {
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.demoAccountBtn:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.demoAccountBtnActive {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.demoCredentialsBox p {
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.demoCredentialsBox p strong {
+  color: var(--text-primary);
+}
+
+.demoCredentialsBox p:last-child {
+  margin-bottom: 0;
+}
+
+.demoCredentialsBox code {
+  background-color: var(--border-color);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+}
+
+.authFooter {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 1.5rem;
+}
+
+.linkAccent {
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.linkAccent:hover {
+  text-decoration: underline;
+}

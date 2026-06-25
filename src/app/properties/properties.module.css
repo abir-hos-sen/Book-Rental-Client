@@ -1,0 +1,363 @@
+.propertiesPage {
+  padding-top: 7.5rem;
+  padding-bottom: 5rem;
+}
+
+.headerRow {
+  margin-bottom: 2.5rem;
+}
+
+.headerRow h1 {
+  font-size: 2.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.propertiesPage :global(h1) {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.headerRow p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  gap: 2rem;
+}
+
+.filterPanel {
+  margin-bottom: 2rem;
+  padding: 1.75rem !important;
+}
+
+.filterGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.9rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 10px 30px rgba(0, 0, 0, 0.04);
+  gap: 1.5rem;
+  align-items: flex-end;
+  padding: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .filterGrid {
+    height: 215px;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .filterGrid {
+    grid-template-columns: 2fr 1fr 1.5fr 1fr;
+  }
+}
+
+.filterItem {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.2rem 1.15rem;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.filterLabel {
+  color: #1f2937;
+  font-size: 0.95rem;
+  margin-bottom: 0.95rem;
+  line-height: 1.35;
+  font-weight: 800;
+  color: #111827;
+}
+
+.locationIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 1.2rem;
+}
+
+.locationTag {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.locationTag svg {
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.priceInputs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.priceInputs input {
+  flex: 1;
+  min-width: 0;
+}
+
+.priceInputs span {
+  color: var(--text-muted);
+}
+
+.applyBtn {
+  width: 100%;
+  height: 42px;
+  margin-top: auto;
+}
+
+.resetBtn {
+  font-size: 0.92rem;
+  color: #2563eb;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.detailsBtn {
+  width: 100%;
+  background: #171717;
+  color: #f8fafc;
+  border: none;
+  border-radius: 0.45rem;
+  padding: 0.72rem 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.detailsBtn:hover {
+  background: #000;
+  transform: translateY(-1px);
+}
+
+.detailsBtn:active {
+  transform: translateY(0);
+}
+
+.controlsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.statsText {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.sortContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+.sortIcon {
+  color: var(--text-muted);
+}
+
+.propertiesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 640px) {
+  .propertiesGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .propertiesGrid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.propertyCard {
+  overflow: hidden;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.propertyCard:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.cardImage {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.cardImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.propertyCard:hover .cardImage img {
+  transform: scale(1.06);
+}
+
+.typeTag {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: var(--accent-primary);
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.cardBody {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.cardBody h3 {
+  font-size: 1.15rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.featuresRow {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
+}
+
+.cardDivider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin-top: auto;
+  margin-bottom: 1rem;
+}
+
+.cardFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.priceContainer {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+}
+
+.rentAmount {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--accent-primary);
+  line-height: 1;
+}
+
+.rentPeriod {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 3.5rem;
+}
+
+.pageBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background-color: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.pageBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageNumber {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.loaderContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 0;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.noResultsBox {
+  text-align: center;
+  padding: 5rem 2rem;
+  border: 1px dashed var(--border-color);
+  border-radius: 1rem;
+}

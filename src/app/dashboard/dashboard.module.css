@@ -1,0 +1,41 @@
+.dashboardWrapper {
+  padding-top: 3rem;
+  padding-bottom: 5rem;
+  min-height: calc(100vh - 4.5rem);
+}
+
+.dashboardHeader {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.dashboardHeader h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.dashboardHeader p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 4.5rem);
+  gap: 1.5rem;
+}
+
+.spinner {
+  color: var(--accent-primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
