@@ -29,8 +29,9 @@ const HOME_STATS = [
   { icon: Star, value: '4.9', label: 'Average Renter Rating' }
 ];
 
-// API base URL - Extracted to module level to avoid dependency warnings in useEffect
+// API base URL - Module-level constant so it never causes re-render loops
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 
 // Helper function to build property search query string with all filters
 // Accepts search object with multiple filter parameters

@@ -6,6 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { MapPin, ChevronLeft, ChevronRight, SlidersHorizontal, ArrowUpDown, Home } from 'lucide-react';
 import styles from './properties.module.css';
 
+// ✅ Module-level constants — never change reference, no re-render loops
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const LIMIT = 6;
+
 // Extracted constants - Available property types for filter dropdown
 const PROPERTY_TYPES = ['Apartment', 'Villa', 'Cabin', 'House'];
 
@@ -17,7 +21,6 @@ const SORT_OPTIONS = [
 ];
 
 // Fallback mock properties used when API is unavailable (offline mode)
-// Allows testing UI without backend connection
 const MOCK_PROPERTIES = [
   { _id: '1', title: 'Luxury Penthouse with Skyline Views', location: 'Dhaka, Dhaka Division', propertyType: 'Apartment', rent: 4200, rentType: 'Monthly', bedrooms: 3, bathrooms: 2.5, propertySize: 1850, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=600'], status: 'Approved' },
   { _id: '2', title: 'Modern Minimalist Villa with Infinity Pool', location: 'Chattogram, Chattogram Division', propertyType: 'Villa', rent: 8500, rentType: 'Monthly', bedrooms: 4, bathrooms: 4, propertySize: 3200, images: ['https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=600'], status: 'Approved' },
@@ -30,20 +33,16 @@ const MOCK_PROPERTIES = [
 ];
 
 // Helper: Convert filter object to URL query string
-// Encodes all active filters for URL sharing and history navigation
 function buildQueryString(filters) {
   const queryParams = [];
-
   if (filters.search) queryParams.push(`search=${encodeURIComponent(filters.search)}`);
   if (filters.propertyType !== 'All') queryParams.push(`propertyType=${filters.propertyType}`);
   if (filters.minPrice) queryParams.push(`minPrice=${filters.minPrice}`);
   if (filters.maxPrice) queryParams.push(`maxPrice=${filters.maxPrice}`);
-
   return queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
 }
 
 // Helper: Extract filter values from URL search parameters
-// Initializes component state from URL to preserve filters on page reload
 function readFiltersFromSearchParams(searchParams) {
   return {
     search: searchParams.get('search') || '',
@@ -54,8 +53,6 @@ function readFiltersFromSearchParams(searchParams) {
 }
 
 // Helper: Filter and sort properties based on criteria
-// Implements local filtering for mock data when API is unavailable
-// Returns filtered array sorted by selected option
 function filterMockProperties(filters, sortOrder) {
   const search = filters.search.toLowerCase();
   const min = Number(filters.minPrice) || 0;
@@ -85,7 +82,6 @@ function PropertiesContent() {
   // Initialize filters from URL parameters for filter persistence
   const initialFilters = readFiltersFromSearchParams(searchParams);
 
-  // State management for filters, properties, loading, and pagination
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialFilters.search);
@@ -97,32 +93,23 @@ function PropertiesContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-  const limit = 6;
-
-  // Event handler: Apply current filters by updating URL and resetting pagination
+  // Event handlers
   const applyFilters = () => {
     setLoading(true);
     router.push(`/properties${buildQueryString({ search: searchTerm, propertyType, minPrice, maxPrice })}`);
     setPage(1);
   };
 
-  // Event handler: Update sort order and reset pagination
   const handleSortChange = (value) => {
-    setLoading(true);
     setSortOrder(value);
     setPage(1);
   };
 
-  // Event handler: Navigate to next/previous page
   const handlePageChange = (nextPage) => {
-    setLoading(true);
     setPage(nextPage);
   };
 
-  // Event handler: Reset all filters to defaults and redirect to clean URL
   const handleClearFilters = () => {
-    setLoading(true);
     setSearchTerm('');
     setPropertyType('All');
     setMinPrice('');
@@ -131,22 +118,20 @@ function PropertiesContent() {
     router.push('/properties');
   };
 
-  // Fallback function: Use mock data when API is unavailable
+  // Offline fallback using mock data
   const handleOfflineFallback = useCallback(() => {
     const filters = readFiltersFromSearchParams(searchParams);
     const filtered = filterMockProperties(filters, sortOrder);
-
     setTotalItems(filtered.length);
-    setTotalPages(Math.ceil(filtered.length / limit) || 1);
-    
-    const startIndex = (page - 1) * limit;
-    const paginated = filtered.slice(startIndex, startIndex + limit);
-    setProperties(paginated);
+    setTotalPages(Math.ceil(filtered.length / LIMIT) || 1);
+    const startIndex = (page - 1) * LIMIT;
+    setProperties(filtered.slice(startIndex, startIndex + LIMIT));
   }, [searchParams, sortOrder, page]);
 
-  // Core fetch function extracted so it can be reused
+  // Core fetch — stable because API_URL and LIMIT are module-level
   const fetchProperties = useCallback(() => {
-    let url = `${API_URL}/properties?page=${page}&limit=${limit}`;
+    setLoading(true);
+    let url = `${API_URL}/properties?page=${page}&limit=${LIMIT}`;
     const filters = readFiltersFromSearchParams(searchParams);
     if (filters.search) url += `&search=${encodeURIComponent(filters.search)}`;
     if (filters.propertyType && filters.propertyType !== 'All') url += `&propertyType=${filters.propertyType}`;
@@ -167,17 +152,11 @@ function PropertiesContent() {
       })
       .catch(() => handleOfflineFallback())
       .finally(() => setLoading(false));
-  }, [searchParams, sortOrder, page, API_URL, handleOfflineFallback]);
+  }, [searchParams, sortOrder, page, handleOfflineFallback]);
 
+  // ✅ Only runs when actual filter/page values change — no visibilitychange loop
   useEffect(() => {
     fetchProperties();
-
-    // Re-fetch when user returns to tab (e.g. after paying — shows Sold Out immediately)
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchProperties();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
   }, [fetchProperties]);
 
   const handleViewDetails = (id) => {
@@ -201,9 +180,9 @@ function PropertiesContent() {
               <div className={styles.filterItem}>
                 <label className={styles.filterLabel}>Search</label>
                 <div className={styles.inputWrapper}>
-                  <input 
-                    type="text" 
-                    placeholder="Search location, title..." 
+                  <input
+                    type="text"
+                    placeholder="Search location, title..."
                     className="form-input"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -214,7 +193,7 @@ function PropertiesContent() {
 
               <div className={styles.filterItem}>
                 <label className={styles.filterLabel}>Type</label>
-                <select 
+                <select
                   className="form-input"
                   value={propertyType}
                   onChange={(e) => setPropertyType(e.target.value)}
@@ -229,18 +208,18 @@ function PropertiesContent() {
               <div className={styles.filterItem}>
                 <label className={styles.filterLabel}>Price Range</label>
                 <div className={styles.priceInputs}>
-                  <input 
-                    type="number" 
-                    placeholder="Min" 
-                    className="form-input" 
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    className="form-input"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
                   />
                   <span>-</span>
-                  <input 
-                    type="number" 
-                    placeholder="Max" 
-                    className="form-input" 
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    className="form-input"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
                   />
@@ -262,8 +241,8 @@ function PropertiesContent() {
             </div>
             <div className={styles.sortContainer}>
               <ArrowUpDown size={16} className={styles.sortIcon} />
-              <select 
-                className="form-input" 
+              <select
+                className="form-input"
                 value={sortOrder}
                 onChange={(e) => handleSortChange(e.target.value)}
               >
@@ -284,7 +263,7 @@ function PropertiesContent() {
               <Home size={48} style={{ marginBottom: '1rem', color: 'var(--text-muted)' }} />
               <h3>No Properties Found</h3>
               <p>Try resetting filters or typing a different search term.</p>
-              <button 
+              <button
                 onClick={handleClearFilters}
                 className="btn btn-secondary"
                 style={{ marginTop: '1rem' }}
@@ -298,8 +277,8 @@ function PropertiesContent() {
                 {properties.map((property) => (
                   <div key={property._id} className={`${styles.propertyCard} glass-card`}>
                     <div className={styles.cardImage}>
-                      <img 
-                        src={property.images[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=600'} 
+                      <img
+                        src={property.images[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=600'}
                         alt={property.title}
                         onError={(e) => { e.target.onerror = null; e.target.src = `https://picsum.photos/seed/${property._id}property/600/400`; }}
                       />
@@ -340,8 +319,8 @@ function PropertiesContent() {
                           <span className={styles.rentAmount}>${property.rent.toLocaleString()}</span>
                           <span className={styles.rentPeriod}>/{property.rentType === 'Daily' ? 'day' : 'month'}</span>
                         </div>
-                        <button 
-                          onClick={() => handleViewDetails(property._id)} 
+                        <button
+                          onClick={() => handleViewDetails(property._id)}
                           className={styles.detailsBtn}
                         >
                           View Details
@@ -354,8 +333,8 @@ function PropertiesContent() {
 
               {totalPages > 1 && (
                 <div className={styles.pagination}>
-                  <button 
-                    onClick={() => handlePageChange(Math.max(page - 1, 1))} 
+                  <button
+                    onClick={() => handlePageChange(Math.max(page - 1, 1))}
                     disabled={page === 1}
                     className={styles.pageBtn}
                   >
@@ -364,8 +343,8 @@ function PropertiesContent() {
                   <span className={styles.pageNumber}>
                     Page {page} of {totalPages}
                   </span>
-                  <button 
-                    onClick={() => handlePageChange(Math.min(page + 1, totalPages))} 
+                  <button
+                    onClick={() => handlePageChange(Math.min(page + 1, totalPages))}
                     disabled={page === totalPages}
                     className={styles.pageBtn}
                   >

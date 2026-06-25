@@ -1,9 +1,11 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { getApiUrl } from '../lib/apiUrl';
 import { authStorage, requestJson } from '../lib/apiClient';
+
+// ✅ Module-level constant — never changes reference, prevents infinite re-render loops
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const AuthContext = createContext();
 
@@ -13,34 +15,20 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [toasts, setToasts] = useState([]);
   const router = useRouter();
+  // Use a ref so fetchUserProfile can access the latest token without being a dependency
+  const tokenRef = useRef(token);
+  tokenRef.current = token;
 
-  const API_URL = getApiUrl();
-
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
-  };
+  }, []);
 
-  const logout = async () => {
-    try {
-      await requestJson(`${API_URL}/auth/logout`, { method: 'POST' });
-    } catch (error) {
-      console.log('Logout API failed, cleaning client cache anyway.');
-    }
-    authStorage.clear();
-    setTimeout(() => {
-      setToken(null);
-      setUser(null);
-    }, 0);
-    showToast('Logged out successfully!');
-    router.push('/login');
-  };
-
-  const fetchUserProfile = async (authToken) => {
+  const fetchUserProfile = useCallback(async (authToken) => {
     if (!authToken || authToken.startsWith('mock_jwt_')) {
       authStorage.clear();
-      setTimeout(() => setLoading(false), 0);
+      setLoading(false);
       return;
     }
     try {
@@ -49,8 +37,6 @@ export function AuthProvider({ children }) {
         setUser(data.user);
       } else {
         authStorage.clear();
-        setTimeout(() => setLoading(false), 0);
-        return;
       }
     } catch (error) {
       console.error('Could not reach auth server:', error.message);
@@ -59,20 +45,19 @@ export function AuthProvider({ children }) {
         setUser(mockUser);
       }
     } finally {
-      setTimeout(() => setLoading(false), 0);
+      setLoading(false);
     }
-  };
+  }, []); // ✅ No changing dependencies
 
+  // ✅ Runs only once on mount
   useEffect(() => {
     const url = new URL(window.location.href);
     const callbackToken = url.searchParams.get('token');
 
     if (callbackToken) {
       authStorage.setToken(callbackToken);
-      setTimeout(() => {
-        setToken(callbackToken);
-        fetchUserProfile(callbackToken);
-      }, 0);
+      setToken(callbackToken);
+      fetchUserProfile(callbackToken);
       url.searchParams.delete('token');
       window.history.replaceState({}, '', `${url.pathname}${url.search ? `?${url.searchParams.toString()}` : ''}`);
       return;
@@ -80,20 +65,30 @@ export function AuthProvider({ children }) {
 
     const storedToken = authStorage.getToken();
     if (storedToken) {
-      setTimeout(() => {
-        setToken(storedToken);
-        fetchUserProfile(storedToken);
-      }, 0);
+      setToken(storedToken);
+      fetchUserProfile(storedToken);
     } else {
-      setTimeout(() => setLoading(false), 0);
+      setLoading(false);
     }
-  }, []);
+  }, [fetchUserProfile]);
 
-  const login = async (email, password) => {
+  const logout = useCallback(async () => {
+    try {
+      await requestJson(`${API_URL}/auth/logout`, { method: 'POST' });
+    } catch {
+      console.log('Logout API failed, cleaning client cache anyway.');
+    }
+    authStorage.clear();
+    setToken(null);
+    setUser(null);
+    showToast('Logged out successfully!');
+    router.push('/login');
+  }, [router, showToast]);
+
+  const login = useCallback(async (email, password) => {
     try {
       setLoading(true);
       const data = await requestJson(`${API_URL}/auth/login`, { json: { email, password } });
-
       authStorage.setToken(data.token);
       setToken(data.token);
       setUser(data.user);
@@ -106,13 +101,12 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, showToast]);
 
-  const verifyOtp = async (email, otp) => {
+  const verifyOtp = useCallback(async (email, otp) => {
     try {
       setLoading(true);
       const data = await requestJson(`${API_URL}/auth/verify-otp`, { json: { email, otp } });
-
       authStorage.setToken(data.token);
       setToken(data.token);
       setUser(data.user);
@@ -125,18 +119,16 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, showToast]);
 
-  const register = async (name, email, password, photo, role) => {
+  const register = useCallback(async (name, email, password, photo, role) => {
     try {
       setLoading(true);
       const data = await requestJson(`${API_URL}/auth/register`, { json: { name, email, password, photo, role } });
-
       if (data.status === 'OTP_REQUIRED') {
         showToast(data.message || 'Verification code sent to your email!');
         return { success: true, otpRequired: true, email: data.email };
       }
-
       authStorage.setToken(data.token);
       setToken(data.token);
       setUser(data.user);
@@ -149,13 +141,12 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, showToast]);
 
-  const verifyRegisterOtp = async (email, otp) => {
+  const verifyRegisterOtp = useCallback(async (email, otp) => {
     try {
       setLoading(true);
       const data = await requestJson(`${API_URL}/auth/verify-register-otp`, { json: { email, otp } });
-
       authStorage.setToken(data.token);
       setToken(data.token);
       setUser(data.user);
@@ -168,24 +159,19 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, showToast]);
 
-  const loginWithGoogle = async () => {
-    if (typeof window === 'undefined') {
-      return { success: false, error: 'Google login is only available in the browser.' };
-    }
-
+  const loginWithGoogle = useCallback(() => {
+    if (typeof window === 'undefined') return;
     window.location.href = `${API_URL}/auth/google`;
-    return { success: true };
-  };
+  }, []);
 
-
-
-  const updateProfile = async (name, photo, email) => {
+  const updateProfile = useCallback(async (name, photo, email) => {
     try {
-      const data = await requestJson(`${API_URL}/auth/me`, { method: 'PUT', token, json: { name, photo, email } });
+      const currentToken = tokenRef.current;
+      const data = await requestJson(`${API_URL}/auth/me`, { method: 'PUT', token: currentToken, json: { name, photo, email } });
       if (data.user) {
-        const updatedUser = { ...user, name: data.user.name, photo: data.user.photo, email: data.user.email };
+        const updatedUser = { ...data.user };
         setUser(updatedUser);
         authStorage.setMockUser(updatedUser);
         if (data.token) {
@@ -198,16 +184,16 @@ export function AuthProvider({ children }) {
         throw new Error(data.message || 'Profile update failed');
       }
     } catch (error) {
-      if (user) {
-        const updated = { ...user, name: name || user.name, photo: photo || user.photo, email: email || user.email };
-        setUser(updated);
+      setUser(prev => {
+        if (!prev) return prev;
+        const updated = { ...prev, name: name || prev.name, photo: photo || prev.photo, email: email || prev.email };
         authStorage.setMockUser(updated);
-        showToast('Profile updated (local)!');
-        return { success: true };
-      }
-      return { success: false, error: error.message };
+        return updated;
+      });
+      showToast('Profile updated (local)!');
+      return { success: true };
     }
-  };
+  }, [showToast]);
 
   return (
     <AuthContext.Provider value={{
