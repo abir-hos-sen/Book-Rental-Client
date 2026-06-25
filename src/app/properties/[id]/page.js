@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Calendar, Heart, Share2, Phone, Star, Send, ShieldCheck, Info, User, Check, X, CreditCard } from 'lucide-react';
 import styles from './details.module.css';
 
+// Module-level constant so it never changes reference and won't re-trigger useEffect
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 const MOCK_FALLBACK_PROPERTIES = [
   { _id: '1', title: 'Luxury Penthouse with Skyline Views', description: 'Stunning luxury penthouse in the heart of downtown. Features floor-to-ceiling windows, modern kitchen appliances, private terrace, and 24/7 concierge services. Ideal for urban professionals seeking an upscale lifestyle.', location: 'Dhaka, Dhaka Division', propertyType: 'Apartment', rent: 4200, rentType: 'Monthly', bedrooms: 3, bathrooms: 2.5, propertySize: 1850, amenities: ['Private Terrace', 'Gym', 'Concierge', 'High-Speed Wi-Fi', 'Smart TV', 'Air Conditioning'], images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=600', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=600'], extraFeatures: ['Walk-in Closets', 'Wine Cooler', 'Heated Floors'], ownerEmail: 'owner@rental.com', ownerName: 'Robert Davis', status: 'Approved' },
   { _id: '2', title: 'Modern Minimalist Villa with Infinity Pool', description: 'Escape to this architectural masterpiece. Nestled in the hills, this villa offers absolute privacy, a magnificent infinity pool overlooking the ocean, open-plan living, and state-of-the-art automation systems.', location: 'Chattogram, Chattogram Division', propertyType: 'Villa', rent: 8500, rentType: 'Monthly', bedrooms: 4, bathrooms: 4, propertySize: 3200, amenities: ['Infinity Pool', 'Home Theater', 'Garage', 'Garden', 'Security System', 'Solar Power'], images: ['https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=600', 'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&q=80&w=600'], extraFeatures: ['Ocean Front', 'Private Chef Available', 'Smart Home System'], ownerEmail: 'owner@rental.com', ownerName: 'Robert Davis', status: 'Approved' },
@@ -21,7 +24,7 @@ export default function PropertyDetailsPage({ params }) {
   // Unwrap it safely using React.use() per Next.js sync dynamic APIs.
   const resolvedParams = React.use(params);
   const { id } = resolvedParams;
-  const { user, token, showToast } = useAuth();
+  const { user, token, showToast, loading: authLoading } = useAuth();
   const router = useRouter();
 
   // Core Data States
@@ -40,13 +43,12 @@ export default function PropertyDetailsPage({ params }) {
   const [contactNumber, setContactNumber] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('card');
 
   // Review Form States
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
   const fetchPropertyDetails = useCallback(async () => {
     setLoading(true);
@@ -91,25 +93,27 @@ export default function PropertyDetailsPage({ params }) {
     } finally {
       setLoading(false);
     }
-  }, [id, token, API_URL]);
+  }, [id, token]);
 
   useEffect(() => {
+    if (authLoading) return;
+
     if (!user) {
       router.push('/login');
       return;
     }
     fetchPropertyDetails();
+  }, [id, user, authLoading, fetchPropertyDetails, router]);
 
-    // Re-fetch when user returns to this tab (e.g. after payment gateway)
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchPropertyDetails();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [id, user, fetchPropertyDetails, router]);
-
-  // Guard: if user is not loaded yet, show nothing
-  if (!user) return null;
+  // Guard: if user is not loaded yet, show loading spinner
+  if (authLoading || !user) {
+    return (
+      <div className={styles.detailsLoader}>
+        <div className={styles.spinner}></div>
+        <p>Loading session...</p>
+      </div>
+    );
+  }
 
   // Toggle Favorite Action
   const handleFavoriteToggle = async () => {
@@ -156,7 +160,6 @@ export default function PropertyDetailsPage({ params }) {
     showToast('Listing link copied to clipboard!');
     setTimeout(() => setCopied(false), 2000);
   };
-  const [paymentMethod, setPaymentMethod] = useState('card');
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
